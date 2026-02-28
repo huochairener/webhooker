@@ -27,13 +27,20 @@ export class WechatWorkFormatter implements OutputFormatter {
   }
 
   private buildMessage(message: IMMessage): Record<string, unknown> {
+
+    //先判断是不是waline的消息，是的话转换一下，走text
+    if (message.link && message.link === 'new_comment') {
+      return this.buildWalineMessage(message);
+    }
+    
+    
     // 如果有链接或图片，使用图文消息
     if (message.link && message.images?.some((img) => img.type === 'cover')) {
       return this.buildNewsMessage(message);
     }
 
-    // 默认使用 Markdown，手动改为news
-    return this.buildNewsMessage(message);
+    // 默认使用 Markdown
+    return this.buildMarkdown(message);
   }
 
   private buildMarkdown(message: IMMessage): Record<string, unknown> {
@@ -122,6 +129,39 @@ export class WechatWorkFormatter implements OutputFormatter {
             picurl: coverImage?.url,
           },
         ],
+      },
+    };
+  }
+  private buildWalineMessage(message: IMMessage): Record<string, unknown> {
+    // 从 message 中提取 comment 数据
+    // 假设 message.body 包含原始 JSON 字符串或已解析的对象
+    let data: any;
+    
+    try {
+      // 尝试解析 body 为 JSON
+      data = typeof message.body === 'string' ? JSON.parse(message.body) : message.body;
+    } catch {
+      // 解析失败则直接使用 body
+      data = { data: { comment: {} } };
+    }
+
+    const comment = data?.data?.comment || {};
+
+    const lines: string[] = [
+      `${comment.nick || '游客'}评论道:`,
+      comment.comment || '',
+      `邮箱: ${comment.mail || ''}`,
+      `状态: ${comment.status || ''}`,
+      `时间：${comment.insertedAt || ''}`,
+      `IP：${comment.ip || ''}`,
+      `仅供评论预览，查看完整內容:`,
+      `https://www.huochairener-blog.cn${comment.url || ''}`
+    ];
+
+    return {
+      msgtype: 'text',
+      text: {
+        content: lines.join('\n'),
       },
     };
   }
