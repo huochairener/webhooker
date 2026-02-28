@@ -32,8 +32,8 @@ export class WechatWorkFormatter implements OutputFormatter {
       return this.buildNewsMessage(message);
     }
 
-    // 默认使用 Markdown
-    return this.buildMarkdown(message);
+    // 默认使用 Markdown，手动改为news
+    return this.buildNewsMessage(message);
   }
 
   private buildMarkdown(message: IMMessage): Record<string, unknown> {
