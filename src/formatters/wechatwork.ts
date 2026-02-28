@@ -28,10 +28,8 @@ export class WechatWorkFormatter implements OutputFormatter {
 
   private buildMessage(message: IMMessage): Record<string, unknown> {
 
-    //先判断是不是waline的消息，是的话转换一下，走text
-    if (message?.type === 'new_comment') {
-      return this.buildWalineMessage(message);
-    }
+    //走text
+    return this.buildWalineMessage(message);
     
     
     // 如果有链接或图片，使用图文消息
